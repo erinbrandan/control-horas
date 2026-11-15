@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Horas - Calendario</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .calendar-container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+
+    .month-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .month-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--text);
+      text-transform: capitalize;
+    }
+
+    .month-nav-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .month-nav-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .calendar-grid-wrapper {
+      background: #ffffff;
+      color: #000000;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .weekdays-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      margin-bottom: 6px;
+      color: #333333;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      border-radius: 6px;
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.6rem;
+      overflow: hidden;
+      transition: transform 0.1s;
+    }
+    .day-cell:hover { transform: scale(1.04); border-color: #333; }
+
+    .day-number {
+      font-weight: bold;
+      font-size: 0.7rem;
+      color: #111;
+    }
+
+    .day-info {
+      font-size: 0.52rem;
+      line-height: 1.1;
+      font-weight: 600;
+    }
+
+    /* Colores solicitados */
+    .cell-empty { background: #ffffff; color: #000; }
+    .cell-trabajado { background: #d1e7dd !important; color: #0f5132 !important; } /* Verde claro */
+    .cell-buceo { background: #cce5ff !important; color: #084298 !important; } /* Azul claro */
+
+    .monthly-total-container {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      border-radius: 10px;
+      color: var(--text);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-card {
+      background: var(--card);
+      width: 90%;
+      max-width: 400px;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="calendar-container">
+
+    <div class="top-nav" style="margin-bottom: 15px;">
+      <button id="btnVolver" class="nav-btn">⬅ Volver al Fichaje</button>
+    </div>
+
+    <div class="month-header">
+      <button id="btnPrevMonth" class="month-nav-btn">◀</button>
+      <h2 id="monthTitle">Cargando mes...</h2>
+      <button id="btnNextMonth" class="month-nav-btn">▶</button>
+    </div>
+
+    <div class="calendar-grid-wrapper">
+      <div class="weekdays-header">
+        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vier</div><div>Sáb</div><div>Dom</div>
+      </div>
+      <div id="daysGrid" class="days-grid"></div>
+    </div>
+
+    <div class="monthly-total-container">
+      Total mensual: <span id="totalMensualVal" style="color: var(--green);">0.00 €</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL EDITAR DÍA -->
+<div id="dayModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div style="margin-bottom: 15px;">
+      <button id="modalBtnRetroceder" class="nav-btn">⬅ Retroceder</button>
+    </div>
+
+    <h3 id="modalFechaTitulo" style="margin-top: 0; text-align: center;">Editar Día</h3>
+
+    <form id="dayEditForm">
+      <div class="form-group">
+        <label>Hora Inicio</label>
+        <input type="time" id="modalHoraInicio" required />
+      </div>
+
+      <div class="form-group">
+        <label>Hora Fin</label>
+        <input type="time" id="modalHoraFin" required />
+      </div>
+
+      <div class="form-group">
+        <label>Plus Buceo</label>
+        <select id="modalPlusBuceo">
+          <option value="false">No</option>
+          <option value="true">Sí</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Precio por hora (€)</label>
+        <input type="number" step="0.01" id="modalPrecioHora" required />
+      </div>
+
+      <div class="form-group">
+        <label>Precio por hora extra (€)</label>
+        <input type="number" step="0.01" id="modalPrecioExtra" required />
+      </div>
+
+      <div class="form-group">
+        <label>Precio Plus Buceo (€)</label>
+        <input type="number" step="0.01" id="modalPrecioBuceo" required />
+      </div>
+
+      <button type="submit" class="btn-main" style="margin-top: 15px;">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<script type="module" src="js/calendario.js"></script>
+</body>
+</html>

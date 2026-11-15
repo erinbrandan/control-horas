@@ -1,0 +1,194 @@
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card-hover: #293548;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --cyan: #06b6d4;
+  --border: #334155;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+}
+
+h1, h2 { margin-top: 0; text-align: center; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.btn-main {
+  width: 100%;
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: opacity 0.2s;
+}
+.btn-main:hover { opacity: 0.9; }
+
+.auth-switch {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.auth-switch span {
+  color: var(--cyan);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.hidden { display: none !important; }
+
+/* ==========================================
+   ESTILOS DE LA PANTALLA DE FICHAJE
+   ========================================== */
+
+.fichar-card {
+  position: relative;
+  padding-bottom: 50px;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+.nav-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-align: center;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.clock-container {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.date-small {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+
+.clock-display {
+  font-size: 2.4rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 2px;
+  color: #ffffff;
+}
+
+.status-badge {
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+  font-weight: 500;
+}
+
+.btn-fichar {
+  font-size: 1.3rem;
+  padding: 20px;
+  border-radius: 14px;
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+.btn-buceo {
+  background: #4fc3f7; /* Azul clarito vivo */
+  border: none;
+  color: #0d47a1; /* Texto oscuro para contraste */
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-top: 15px;
+  transition: all 0.2s;
+}
+
+.btn-buceo.active {
+  background: #01579b; /* Azul marino intenso cuando está activo */
+  color: white;
+  border: 1px solid #4fc3f7;
+}
+
+.logout-corner {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+}
+
+.btn-logout-link {
+  background: transparent;
+  border: none;
+  color: #ff5252;
+  cursor: pointer;
+  font-size: 0.85rem;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Horas - Fichaje</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card fichar-card">
+
+    <!-- Botonera Superior -->
+    <div class="top-nav">
+      <button id="btnCalendario" class="nav-btn">📅 Calendario</button>
+      <button id="btnInforme" class="nav-btn">📊 Informe</button>
+      <button id="btnAjustes" class="nav-btn">⚙️ Ajustes</button>
+    </div>
+
+    <!-- Fecha pequeña y Reloj de tiempo transcurrido -->
+    <div class="clock-container">
+      <div id="currentDate" class="date-small">Cargando fecha...</div>
+      <div id="elapsedClock" class="clock-display">00:00:00</div>
+    </div>
+
+    <!-- Estado actual -->
+    <div id="statusBadge" class="status-badge">
+      Estado: Comprobando...
+    </div>
+
+    <!-- BOTÓN GRANDE FICHAR -->
+    <button id="btnFichar" class="btn-primary btn-fichar">
+      ⏳ Cargando...
+    </button>
+
+    <!-- BOTÓN BUCEO -->
+    <button id="btnBuceo" class="btn-buceo">
+      🤿 Plus Buceo: Inactivo
+    </button>
+
+    <!-- Botón de Cerrar Sesión (Esquina inferior derecha) -->
+    <div class="logout-corner">
+      <button id="btnLogout" class="btn-logout-link">
+        Cerrar Sesión
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="js/fichar.js"></script>
+</body>
+</html>

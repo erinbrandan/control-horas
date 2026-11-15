@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Control de Horas - Acceso</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/firebase-config.js"></script>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="card">
+
+    <!-- VISTA 1: INICIAR SESIÓN -->
+    <div id="loginView">
+      <h2>🔐 Iniciar Sesión</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="loginEmail" required placeholder="tu@email.com">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-main">Entrar</button>
+      </form>
+      <div class="auth-switch">
+        ¿No tienes cuenta? <span id="showRegister">Regístrate aquí</span>
+      </div>
+    </div>
+
+    <!-- VISTA 2: REGISTRO -->
+    <div id="registerView" class="hidden">
+      <h2>📝 Crear Cuenta</h2>
+      <form id="registerForm">
+        <div class="form-group">
+          <label>Nombre y Apellidos</label>
+          <input type="text" id="regName" required placeholder="Erín Brandán">
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="regEmail" required placeholder="tu@email.com">
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Contraseña</label>
+          <input type="password" id="regPassword" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label for="regConfirmPassword">Repetir Contraseña</label>
+          <input type="password" id="regConfirmPassword" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>Rol en la aplicación</label>
+          <select id="regRole">
+            <option value="trabajador">Trabajador</option>
+            <option value="empresario">Empresario (Jefe)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Empresa</label>
+          <select id="regCompanySelect">
+            <option value="">Cargando empresas...</option>
+            <option value="nueva">➕ Añadir nueva empresa...</option>
+          </select>
+        </div>
+        <div class="form-group hidden" id="newCompanyGroup">
+          <label>Nombre de la nueva empresa</label>
+          <input type="text" id="regNewCompanyName" placeholder="Ej. Dorna Sports / Circuit...">
+        </div>
+        <button type="submit" class="btn-main">Registrarse</button>
+      </form>
+      <div class="auth-switch">
+        ¿Ya tienes cuenta? <span id="showLogin">Inicia sesión</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Lógica de Autenticación -->
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>
