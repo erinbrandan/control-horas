@@ -86,11 +86,18 @@ async function calcularYRenderizarInforme() {
 
   let diasBuceoCount = 0;
   let dineroBuceoTotal = 0;
-  let diasTrabajadosCount = 0;
   let totalHorasBaseAcumuladas = 0;
   let dineroHorasBaseTotal = 0;
   let totalHorasExtraAcumuladas = 0;
   let dineroExtraTotal = 0;
+
+  // Agrupamos por fecha (YYYY-MM-DD) para garantizar que cada día se cuenta una única vez
+  const jornadasPorFecha = new Map();
+
+  jornadasMes.forEach((jornada) => {
+    if (!jornada.fecha || !jornada.entrada) return;
+    jornadasPorFecha.set(jornada.fecha, jornada);
+  });
 
   // Obtener tarifas del usuario
   const userDocRef = doc(db, "usuarios", usuarioActual.uid);
@@ -99,18 +106,14 @@ async function calcularYRenderizarInforme() {
   const baseHoras = dataUsr.baseHoras !== undefined ? dataUsr.baseHoras : 6;
   const defPrecioHora = dataUsr.precioHora !== undefined ? dataUsr.precioHora : 15.83;
   const defPrecioExtra = dataUsr.precioHoraExtra !== undefined ? dataUsr.precioHoraExtra : 15.83;
-  const defPrecioBuceo = dataUsr.precioBuceo !== undefined ? data.precioBuceo : 30.00;
+  const defPrecioBuceo = dataUsr.precioBuceo !== undefined ? dataUsr.precioBuceo : 30.00;
 
-  jornadasMes.forEach((jornada) => {
-    if (!jornada.entrada) return;
-
+  jornadasPorFecha.forEach((jornada) => {
     const entradaMs = jornada.entrada.toDate().getTime();
     let salidaMs = jornada.salida && jornada.salida.toDate ? jornada.salida.toDate().getTime() : new Date().getTime();
 
     const duracionMs = salidaMs - entradaMs;
     const horasTrabajadas = duracionMs > 0 ? duracionMs / (1000 * 60 * 60) : 0;
-
-    diasTrabajadosCount++;
 
     const pHora = jornada.precioHora !== undefined ? jornada.precioHora : defPrecioHora;
     const pExtra = jornada.precioHoraExtra !== undefined ? jornada.precioHoraExtra : defPrecioExtra;
@@ -130,6 +133,8 @@ async function calcularYRenderizarInforme() {
       dineroBuceoTotal += pBuceo;
     }
   });
+
+  const diasTrabajadosCount = jornadasPorFecha.size;
 
   const dineroBuceoRedondeado = Math.round(dineroBuceoTotal);
   const dineroHorasRedondeado = Math.round(dineroHorasBaseTotal);
@@ -195,7 +200,6 @@ btnCompartir.addEventListener("click", async () => {
 ⚡ Total horas extra: ${informeDatosActuales.totalHorasExtra} h (${informeDatosActuales.dineroExtra} €)
 💰 TOTAL MENSUAL: ${informeDatosActuales.totalDinero} €`;
 
-  // Si el navegador soporta compartir de forma nativa (WhatsApp, correo, etc.)
   if (navigator.share) {
     try {
       await navigator.share({
@@ -208,7 +212,6 @@ btnCompartir.addEventListener("click", async () => {
     }
   }
 
-  // Si no soporta share nativo o el usuario prefiere PDF, abrimos el diálogo de impresión optimizado para PDF
   const confirmarPdf = confirm("¿Deseas descargar/imprimir este informe en PDF?\n\n(También puedes copiar los datos al portapapeles)");
   if (confirmarPdf) {
     window.print();
