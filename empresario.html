@@ -1,10 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Horas - Panel Empresario</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<div class="app-container">
+  <div class="card fichar-card" style="max-height: 90vh; overflow-y: auto;">
+
+    <!-- Barra superior de navegación / Cierre de sesión -->
+    <div class="top-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <span id="nombreEmpresario" style="font-size: 0.9rem; color: var(--muted);">Panel Empresario</span>
+      <button id="btnLogoutEmpresa" class="nav-btn" style="background: rgba(211,47,47,0.2); color: #ff5252; border: 1px solid rgba(211,47,47,0.4);">Cerrar Sesión</button>
+    </div>
+
+    <h2>🏢 Portal de Gestión</h2>
+    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">
+      Introduce el código de vinculación facilitado por tu trabajador para acceder a sus informes de horas.
+    </p>
+
+    <!-- Formulario para vincular trabajador por código -->
+    <form id="vincularForm" style="display: flex; gap: 10px; margin-bottom: 25px;">
+      <input type="text" id="inputCodigoTrabajador" placeholder="Ej. ABC-1234" required style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; font-family: monospace; text-transform: uppercase;" />
+      <button type="submit" style="background: #00e676; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Vincular</button>
+    </form>
+
+    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+
+    <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text);">📋 Trabajadores Vinculados</h3>
+
+    <!-- Contenedor dinámico de la lista de trabajadores autorizados -->
+    <div id="listaTrabajadores" style="display: flex; flexDirection: column; gap: 12px;">
+      <p style="color: var(--muted); font-size: 0.9rem; text-align: center; padding: 20px;">Cargando trabajadores autorizados...</p>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="js/empresario.js"></script>
 </body>
 </html>

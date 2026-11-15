@@ -32,10 +32,22 @@ async function inicializarInforme() {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    usuarioActual = auth.currentUser;
-    if (!usuarioActual) {
+    const userAuth = auth.currentUser;
+    if (!userAuth) {
       window.location.href = "index.html";
       return;
+    }
+
+    // Comprobamos si la URL trae un parámetro ?uid=... (caso del empresario viendo a un empleado)
+    const urlParams = new URLSearchParams(window.location.search);
+    const uidParam = urlParams.get("uid");
+
+    if (uidParam) {
+      // Si es un empresario consultando, asignamos temporalmente el ID del trabajador
+      usuarioActual = { uid: uidParam };
+    } else {
+      // Si no, es el usuario normal viendo su propio informe
+      usuarioActual = userAuth;
     }
 
     await cargarDatosUsuario();
@@ -222,5 +234,14 @@ btnCompartir.addEventListener("click", async () => {
 });
 
 btnVolver.addEventListener("click", () => {
-  window.location.href = "fichar.html";
+  const urlParams = new URLSearchParams(window.location.search);
+  const uidTrabajadorParam = urlParams.get("uid");
+
+  if (uidTrabajadorParam) {
+    // Si hay un UID en la URL, significa que entró un empresario, por lo que volvemos al panel de gestión
+    window.location.href = "empresario.html";
+  } else {
+    // Si no, es el propio trabajador volviendo a su panel de fichaje
+    window.location.href = "fichar.html";
+  }
 });

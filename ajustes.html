@@ -67,6 +67,17 @@
         <label for="inputPrecioBuceo">Precio Plus Buceo (€)</label>
         <input type="number" step="0.01" id="inputPrecioBuceo" placeholder="30" />
       </div>
+      <!-- Sección de Código de Vinculación para Empresario -->
+      <div class="ajustes-card" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--text);">🔗 Código para Empresario</h3>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 12px;">
+          Comparte este código con tu empresario para que pueda consultar tus informes de horas.
+        </p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="text" id="inputCodigoVinculacion" readonly value="Generando..." style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 1rem; text-align: center;" />
+          <button id="btnCopiarCodigo" style="background: #00e676; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Copiar</button>
+        </div>
+      </div>
 
       <button type="submit" class="btn-main" style="margin-top: 20px;">
         Guardar Cambios

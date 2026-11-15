@@ -12,10 +12,25 @@ const inputPrecioHoraExtra = document.getElementById("inputPrecioHoraExtra");
 const inputBaseHoras = document.getElementById("inputBaseHoras");
 const inputPrecioBuceo = document.getElementById("inputPrecioBuceo");
 
+// Elementos de la nueva tarjeta de código para empresario
+const inputCodigoVinculacion = document.getElementById("inputCodigoVinculacion");
+const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
+
 const ajustesForm = document.getElementById("ajustesForm");
 const btnVolver = document.getElementById("btnVolver");
 
 let usuarioActual = null;
+
+// Función para generar un código único legible (Ej: ABC-1234)
+function generarCodigoAleatorio() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
+  let parteLetras = "";
+  let parteNumeros = "";
+  for (let i = 0; i < 3; i++) parteLetras += letras.charAt(Math.floor(Math.random() * letras.length));
+  for (let i = 0; i < 4; i++) parteNumeros += numeros.charAt(Math.floor(Math.random() * numeros.length));
+  return `${parteLetras}-${parteNumeros}`;
+}
 
 // Mostrar u ocultar input de nueva empresa según selección
 ajustesCompanySelect.addEventListener("change", (e) => {
@@ -72,11 +87,13 @@ async function inicializarAjustes() {
     const userDoc = await getDoc(userDocRef);
 
     let empresaIdGuardada = "";
+    let codigoVinculacion = "";
 
     if (userDoc.exists()) {
       const data = userDoc.data();
       inputNombre.value = data.nombre || "";
       empresaIdGuardada = data.empresaId || "";
+      codigoVinculacion = data.codigoVinculacion || "";
 
       // Cargar tarifas guardadas o valores por defecto
       inputPrecioHora.value = data.precioHora !== undefined ? data.precioHora : 15.83;
@@ -90,6 +107,20 @@ async function inicializarAjustes() {
       inputPrecioBuceo.value = 30;
     }
 
+    // Si el usuario no tiene código de vinculación asignado, se lo generamos y guardamos al vuelo
+    if (!codigoVinculacion) {
+      codigoVinculacion = generarCodigoAleatorio();
+      await setDoc(userDocRef, {
+        codigoVinculacion: codigoVinculacion,
+        rol: "trabajador"
+      }, { merge: true });
+    }
+
+    // Mostrar el código en su respectivo input
+    if (inputCodigoVinculacion) {
+      inputCodigoVinculacion.value = codigoVinculacion;
+    }
+
     // Cargar el desplegable de empresas seleccionando la del usuario
     await cargarEmpresasEnAjustes(empresaIdGuardada);
 
@@ -99,6 +130,20 @@ async function inicializarAjustes() {
 }
 
 inicializarAjustes();
+
+// Copiar código de vinculación al portapapeles
+if (btnCopiarCodigo) {
+  btnCopiarCodigo.addEventListener("click", () => {
+    if (!inputCodigoVinculacion.value || inputCodigoVinculacion.value === "Generando...") return;
+
+    navigator.clipboard.writeText(inputCodigoVinculacion.value);
+    const textoOriginal = btnCopiarCodigo.textContent;
+    btnCopiarCodigo.textContent = "¡Copiado!";
+    setTimeout(() => {
+      btnCopiarCodigo.textContent = textoOriginal;
+    }, 2000);
+  });
+}
 
 // Guardar cambios en Firestore
 ajustesForm.addEventListener("submit", async (e) => {
