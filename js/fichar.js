@@ -1,6 +1,6 @@
 import { db, auth } from "./firebase-config.js";
 import {
-  collection, addDoc, getDocs, updateDoc, doc, getDoc, query, where, serverTimestamp
+  collection, getDocs, doc, getDoc, setDoc, query, where, serverTimestamp, deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
@@ -15,11 +15,11 @@ const btnInforme = document.getElementById("btnInforme");
 const btnAjustes = document.getElementById("btnAjustes");
 
 let usuarioActual = null;
-let jornadaActivaId = null;
 let horaEntradaTimestamp = null;
 let timerInterval = null;
 let buceoActivo = false;
 let msAcumuladosHoy = 0;
+let jornadaActiva = false; // Estado booleano en lugar de almacenar un ID aleatorio
 
 function obtenerFechaHoy() {
   return new Date().toISOString().split('T')[0];
@@ -88,23 +88,35 @@ async function calcularEstadoYJornadasHoy(uid) {
     const querySnapshot = await getDocs(q);
 
     msAcumuladosHoy = 0;
-    jornadaActivaId = null;
+    jornadaActiva = false;
     horaEntradaTimestamp = null;
     let sesionActivaEncontrada = false;
 
+    // Si por error histórico hubiera varios documentos para hoy, los procesamos o limpiamos
+    let documentosEncontrados = [];
+
     querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      if (data.salida === null) {
-        sesionActivaEncontrada = true;
-        jornadaActivaId = docSnap.id;
-        buceoActivo = data.plusBuceo || false;
-        if (data.entrada && data.entrada.toDate) {
-          horaEntradaTimestamp = data.entrada.toDate();
-        }
-      } else if (data.entrada && data.salida && data.entrada.toDate && data.salida.toDate) {
-        const duracion = data.salida.toDate() - data.entrada.toDate();
+      documentosEncontrados.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // Buscamos si hay alguna sesión activa (salida == null)
+    const activa = documentosEncontrados.find(d => d.salida === null);
+
+    if (activa) {
+      sesionActivaEncontrada = true;
+      jornadaActiva = true;
+      buceoActivo = activa.plusBuceo || false;
+      if (activa.entrada && activa.entrada.toDate) {
+        horaEntradaTimestamp = activa.entrada.toDate();
+      }
+    }
+
+    // Sumamos el tiempo de las sesiones ya cerradas (o de todas si limpiamos)
+    documentosEncontrados.forEach((d) => {
+      if (d.salida !== null && d.entrada && d.salida && d.entrada.toDate && d.salida.toDate) {
+        const duracion = d.salida.toDate() - d.entrada.toDate();
         msAcumuladosHoy += duracion;
-        if (data.plusBuceo) buceoActivo = true;
+        if (d.plusBuceo) buceoActivo = true;
       }
     });
 
@@ -150,8 +162,8 @@ function actualizarInterfazEstado(activo) {
     statusBadge.textContent = "Estado: Fuera de servicio ⚪";
     statusBadge.style.color = "var(--muted)";
     btnFichar.textContent = "▶ Fichar Entrada";
-    btnFichar.style.background = "#00e676"; // Verde eléctrico brillante
-    btnFichar.style.color = "#000000"; // Texto negro para contraste
+    btnFichar.style.background = "#00e676";
+    btnFichar.style.color = "#000000";
     detenerReloj();
   }
 }
@@ -171,38 +183,64 @@ btnFichar.addEventListener("click", async () => {
 
   try {
     btnFichar.disabled = true;
+    const fechaHoy = obtenerFechaHoy();
+    // ID único y determinista por usuario y día (evita duplicados de documentos)
+    const idJornadaUnico = `${usuarioActual.uid}_${fechaHoy}`;
+    const jornadaRef = doc(db, "jornadas", idJornadaUnico);
+    const ahora = new Date();
 
-    if (jornadaActivaId) {
-      const jornadaRef = doc(db, "jornadas", jornadaActivaId);
-      const ahora = new Date();
-      await updateDoc(jornadaRef, {
+    if (jornadaActiva) {
+      // Finalizar la jornada activa del día actual
+      const docSnap = await getDoc(jornadaRef);
+      let entradaOriginal = serverTimestamp();
+
+      if (docSnap.exists() && docSnap.data().entrada) {
+        entradaOriginal = docSnap.data().entrada;
+        if (docSnap.data().entrada.toDate) {
+          horaEntradaTimestamp = docSnap.data().entrada.toDate();
+        }
+      }
+
+      await setDoc(jornadaRef, {
+        usuarioId: usuarioActual.uid,
+        fecha: fechaHoy,
+        entrada: entradaOriginal,
         salida: serverTimestamp(),
         plusBuceo: buceoActivo
-      });
+      }, { merge: true });
 
       if (horaEntradaTimestamp) {
         msAcumuladosHoy += (ahora - horaEntradaTimestamp);
       }
 
-      jornadaActivaId = null;
+      jornadaActiva = false;
       horaEntradaTimestamp = null;
       actualizarInterfazEstado(false);
       elapsedClock.textContent = formatearTiempo(msAcumuladosHoy);
 
     } else {
+      // Iniciar o reanudar la jornada del día actual
       const userDoc = await getDoc(doc(db, "usuarios", usuarioActual.uid));
       const empresaId = userDoc.exists() ? userDoc.data().empresaId : null;
 
-      const nuevaJornada = await addDoc(collection(db, "jornadas"), {
+      // Si ya existía un documento previo de hoy cerrado, mantenemos su hora de entrada original o seteamos una nueva si empieza de cero
+      const docSnap = await getDoc(jornadaRef);
+      let entradaAUsar = serverTimestamp();
+
+      if (docSnap.exists() && docSnap.data().entrada && msAcumuladosHoy === 0) {
+        entradaAUsar = docSnap.data().entrada;
+      }
+
+      await setDoc(jornadaRef, {
         usuarioId: usuarioActual.uid,
         empresaId: empresaId,
-        entrada: serverTimestamp(),
-        salida: null,
-        plusBuceo: buceoActivo,
-        fecha: obtenerFechaHoy()
-      });
+        fecha: fechaHoy,
+        entrada: entradaAUsar,
+        salida: null, // Dejamos la salida abierta
+        plusBuceo: buceoActivo
+      }, { merge: true });
 
-      jornadaActivaId = nuevaJornada.id;
+      jornadaActiva = true;
       horaEntradaTimestamp = new Date();
       iniciarRelojAcumulativo();
       actualizarInterfazEstado(true);
@@ -224,15 +262,17 @@ btnBuceo.addEventListener("click", async () => {
   buceoActivo = !buceoActivo;
   actualizarBotonBuceoUI();
 
-  if (jornadaActivaId) {
-    try {
-      const jornadaRef = doc(db, "jornadas", jornadaActivaId);
-      await updateDoc(jornadaRef, {
-        plusBuceo: buceoActivo
-      });
-    } catch (error) {
-      console.error("Error al actualizar el plus de buceo:", error);
-    }
+  try {
+    const fechaHoy = obtenerFechaHoy();
+    const idJornadaUnico = `${usuarioActual.uid}_${fechaHoy}`;
+    const jornadaRef = doc(db, "jornadas", idJornadaUnico);
+
+    // Actualizamos el plus de buceo en el documento del día si ya existe
+    await setDoc(jornadaRef, {
+      plusBuceo: buceoActivo
+    }, { merge: true });
+  } catch (error) {
+    console.error("Error al actualizar el plus de buceo:", error);
   }
 });
 
